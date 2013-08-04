@@ -1,0 +1,5 @@
+name: ${project.name}
+main: net.daboross.bukkitdev.uberchatbukkitconnector.UberChatBukkitConnectorPlugin
+version: ${project.version}
+author: Dabo Ross
+description: Uber Chat bukkit connector
