@@ -16,34 +16,19 @@
  */
 package net.daboross.bukkitdev.uberchatbukkitconnector;
 
-import java.io.IOException;
-import java.util.logging.Level;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.event.Listener;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.mcstats.MetricsLite;
 
 /**
  *
  * @author daboross
  */
-public class UberChatBukkitConnectorPlugin extends JavaPlugin implements Listener {
+public class UberChatBukkitConnectorPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        PluginManager pm = getServer().getPluginManager();
-        pm.registerEvents(this, this);
-        MetricsLite metrics = null;
-        try {
-            metrics = new MetricsLite(this);
-        } catch (IOException ex) {
-            getLogger().log(Level.WARNING, "Unable to create Metrics", ex);
-        }
-        if (metrics != null) {
-            metrics.start();
-        }
+        this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new UberChatBukkitListener(this));
     }
 
     @Override
@@ -52,10 +37,7 @@ public class UberChatBukkitConnectorPlugin extends JavaPlugin implements Listene
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (cmd.getName().equalsIgnoreCase("")) {
-        } else {
-            sender.sendMessage("UberChatBukkitConnector doesn't know about the command /" + cmd.getName());
-        }
+        sender.sendMessage("UberChatBukkitConnector doesn't know about the command /" + cmd.getName());
         return true;
     }
 }
