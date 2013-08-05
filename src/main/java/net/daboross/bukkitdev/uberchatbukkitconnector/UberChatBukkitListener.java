@@ -25,7 +25,7 @@ public class UberChatBukkitListener implements PluginMessageListener {
 
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-        System.out.println("Channel player=" + player + " channel=" + channel + " message=" + message);
+        System.out.println("Channel player=" + player + " channel=" + channel);
         if (!channel.equalsIgnoreCase("BungeeCord")) {
             return;
         }
