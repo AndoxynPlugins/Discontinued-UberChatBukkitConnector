@@ -20,12 +20,13 @@ public class UberChatBukkitListener implements PluginMessageListener {
 
     public UberChatBukkitListener(UberChatBukkitConnectorPlugin plugin) {
         this.plugin = plugin;
+        System.out.println("Initialized.");
     }
 
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-        System.out.println("Channe player=" + player + " channel=" + channel + " message=" + message);
-        if (!channel.equals("BungeeCord")) {
+        System.out.println("Channel player=" + player + " channel=" + channel + " message=" + message);
+        if (!channel.equalsIgnoreCase("BungeeCord")) {
             return;
         }
         DataInputStream in = new DataInputStream(new ByteArrayInputStream(message));

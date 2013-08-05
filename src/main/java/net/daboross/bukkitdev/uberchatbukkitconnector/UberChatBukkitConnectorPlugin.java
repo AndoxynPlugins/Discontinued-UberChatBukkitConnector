@@ -28,6 +28,7 @@ public class UberChatBukkitConnectorPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        this.getServer().getMessenger().registerIncomingPluginChannel(this, "Bungeecord", new UberChatBukkitListener(this));
         this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new UberChatBukkitListener(this));
     }
 
