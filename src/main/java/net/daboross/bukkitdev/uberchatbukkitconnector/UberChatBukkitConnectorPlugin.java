@@ -16,20 +16,27 @@
  */
 package net.daboross.bukkitdev.uberchatbukkitconnector;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.util.logging.Level;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.PluginMessageListener;
 
 /**
  *
  * @author daboross
  */
-public class UberChatBukkitConnectorPlugin extends JavaPlugin {
+public class UberChatBukkitConnectorPlugin extends JavaPlugin implements PluginMessageListener {
 
     @Override
     public void onEnable() {
-        this.getServer().getMessenger().registerIncomingPluginChannel(this, "Bungeecord", new UberChatBukkitListener(this));
-        this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", new UberChatBukkitListener(this));
+        this.getServer().getMessenger().registerIncomingPluginChannel(this, "Bungeecord", this);
+        this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
     }
 
     @Override
@@ -40,5 +47,36 @@ public class UberChatBukkitConnectorPlugin extends JavaPlugin {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         sender.sendMessage("UberChatBukkitConnector doesn't know about the command /" + cmd.getName());
         return true;
+    }
+
+    @Override
+    public void onPluginMessageReceived(String channel, Player player, byte[] message) {
+        System.out.println("Received message from player " + player);
+        if (!channel.equalsIgnoreCase("BungeeCord")) {
+            return;
+        }
+        DataInputStream in = new DataInputStream(new ByteArrayInputStream(message));
+        try {
+            String subchannel = in.readUTF();
+            if (subchannel.equals("UberChat")) {
+                String action;
+                action = in.readUTF();
+                if (action.equals("SetDisplayName")) {
+                    player.setDisplayName(in.readUTF());
+                } else if (action.equals("ConsoleMessage")) {
+                    getLogger().log(Level.INFO, in.readUTF());
+                } else if (action.equals("SendWithPermission")) {
+                    String permission = in.readUTF();
+                    String spyMessage = in.readUTF();
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        if (p.hasPermission(permission)) {
+                            p.sendMessage(spyMessage);
+                        }
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            getLogger().log(Level.SEVERE, "Error recieving message", ex);
+        }
     }
 }
