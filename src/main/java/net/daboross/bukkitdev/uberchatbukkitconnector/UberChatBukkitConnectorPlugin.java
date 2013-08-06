@@ -19,6 +19,8 @@ package net.daboross.bukkitdev.uberchatbukkitconnector;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -35,8 +37,7 @@ public class UberChatBukkitConnectorPlugin extends JavaPlugin implements PluginM
 
     @Override
     public void onEnable() {
-        this.getServer().getMessenger().registerIncomingPluginChannel(this, "Bungeecord", this);
-        this.getServer().getMessenger().registerIncomingPluginChannel(this, "BungeeCord", this);
+        this.getServer().getMessenger().registerIncomingPluginChannel(this, "UberChat", this);
     }
 
     @Override
@@ -51,29 +52,45 @@ public class UberChatBukkitConnectorPlugin extends JavaPlugin implements PluginM
 
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-        System.out.println("Received message from player " + player);
-        if (!channel.equalsIgnoreCase("BungeeCord")) {
+        if (!channel.equalsIgnoreCase("UberChat")) {
             return;
         }
         DataInputStream in = new DataInputStream(new ByteArrayInputStream(message));
         try {
-            String subchannel = in.readUTF();
-            if (subchannel.equals("UberChat")) {
-                String action;
-                action = in.readUTF();
-                if (action.equals("SetDisplayName")) {
+            String action = in.readUTF();
+            switch (action) {
+                case "SetDisplayName":
                     player.setDisplayName(in.readUTF());
-                } else if (action.equals("ConsoleMessage")) {
-                    getLogger().log(Level.INFO, in.readUTF());
-                } else if (action.equals("SendWithPermission")) {
+                    break;
+                case "ConsoleMessage":
+                    Bukkit.getConsoleSender().sendMessage(in.readUTF());
+                    break;
+                case "SendWithPermission":
                     String permission = in.readUTF();
                     String spyMessage = in.readUTF();
-                    for (Player p : Bukkit.getOnlinePlayers()) {
-                        if (p.hasPermission(permission)) {
-                            p.sendMessage(spyMessage);
+                    int ignoredLength = in.readInt();
+                    if (ignoredLength != 0) {
+                        Set<String> ignored = new HashSet<String>(ignoredLength);
+                        for (int i = 0; i < ignoredLength; i++) {
+                            ignored.add(in.readUTF());
+                        }
+                        for (Player p : Bukkit.getOnlinePlayers()) {
+                            if (p.hasPermission(permission) && !ignored.contains(p.getName())) {
+                                p.sendMessage(spyMessage);
+                            }
+                        }
+                    } else {
+                        for (Player p : Bukkit.getOnlinePlayers()) {
+                            if (p.hasPermission(permission)) {
+                                p.sendMessage(spyMessage);
+                            }
                         }
                     }
-                }
+                    break;
+
+
+                default:
+                    getLogger().log(Level.WARNING, "Unknown command received ''{0}''.", action);
             }
         } catch (IOException ex) {
             getLogger().log(Level.SEVERE, "Error recieving message", ex);
