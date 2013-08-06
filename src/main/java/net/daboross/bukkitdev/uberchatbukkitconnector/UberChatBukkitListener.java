@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.logging.Level;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
@@ -25,7 +26,7 @@ public class UberChatBukkitListener implements PluginMessageListener {
 
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-        System.out.println("Channel player=" + player + " channel=" + channel);
+        System.out.println("Received message from player " + player);
         if (!channel.equalsIgnoreCase("BungeeCord")) {
             return;
         }
@@ -33,7 +34,6 @@ public class UberChatBukkitListener implements PluginMessageListener {
         String subchannel;
         try {
             subchannel = in.readUTF();
-
             if (subchannel.equals("UberChat")) {
                 String action;
                 action = in.readUTF();
@@ -41,6 +41,14 @@ public class UberChatBukkitListener implements PluginMessageListener {
                     player.setDisplayName(in.readUTF());
                 } else if (action.equals("ConsoleMessage")) {
                     plugin.getLogger().log(Level.INFO, in.readUTF());
+                } else if (action.equals("SendWithPermission")) {
+                    String permission = in.readUTF();
+                    String spyMessage = in.readUTF();
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        if (p.hasPermission(permission)) {
+                            p.sendMessage(spyMessage);
+                        }
+                    }
                 }
             }
         } catch (IOException ex) {
